@@ -4,7 +4,7 @@
   <metadata>
     <!-- == PACKAGE SPECIFIC SECTION == -->
     <id>mqtt-explorer</id>
-    <version>0.4.0-beta1</version>
+    <version>0.3.5</version>
     <packageSourceUrl>https://github.com/Kipjr/chocolatey-packages/tree/master/mqtt-explorer</packageSourceUrl>
     <owners>Kipjr</owners>
     <!-- == SOFTWARE SPECIFIC SECTION == -->
@@ -15,7 +15,7 @@
     <licenseUrl>https://github.com/thomasnordquist/MQTT-Explorer/blob/master/LICENSE.md</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/thomasnordquist/MQTT-Explorer</projectSourceUrl>
-    <tags>mqtt-explorer 0.4.0-beta1</tags>
+    <tags>mqtt-explorer 0.3.5</tags>
     <summary>MQTT Explorer is a comprehensive MQTT client that provides a structured overview of your MQTT topics and makes working with devices/services on your broker dead-simple.</summary>
     <description>
 # Features

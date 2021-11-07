@@ -1,7 +1,7 @@
 ﻿$ErrorActionPreference = 'Stop';
 $packageArgs = @{
   packageName   = $env:ChocolateyPackageName
-  softwareName  = 'MQTT Explorer 0.4.0-beta1'
+  softwareName  = 'MQTT Explorer 0.3.5'
   fileType      = 'EXE'
   silentArgs   = '/S'
   validExitCodes= @(0) 
