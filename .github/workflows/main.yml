@@ -1,13 +1,103 @@
 
 on: 
   workflow_dispatch:
+    #manual - just for testing
+  pull_request:
+    branches:
+      - master
+    #manual - just for testing
   release: 
     types: [published]
+    #if test succeeded, then push to repo
     
 jobs:
   test:
-
     runs-on: windows-2022
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        
+      - name: Branch name
+        id: branch_name
+        shell: bash
+        run: |
+          echo ${GITHUB_REF}
+          echo ::set-output name=SOURCE_NAME::${GITHUB_REF#refs/*/}
+          echo ::set-output name=SOURCE_BRANCH::${GITHUB_REF#refs/heads/}
+          echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}    
+        
+      - name: Install Choco
+        run: |
+           if(test-path -path "C:\ProgramData\chocolatey\choco.exe"){echo "Choco is already installed"} else {
+             [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+             iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+           }
+        
+
+      - name: GetPackages
+        id: packages
+        run: |
+           $packages = Get-ChildItem -path . -recurse -Filter '*.nuspec' |select -ExpandProperty fullname
+           echo $packages
+           echo "CHOCO_PACKAGES=$(($packages) -join ';')" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append  
+
+      - name: Get Tag Base Name
+        id: tagname
+        env:
+          SOURCE_TAG: ${{  steps.branch_name.outputs.SOURCE_TAG }}
+        run: |
+           echo ${{ env.SOURCE_TAG }}
+           if( '${{ env.SOURCE_TAG  }}' -eq 'refs/heads/master' ){
+             $tag = 'mqtt-explorer-0.4.0-beta1'
+             $itemname = $(( $tag | select-String -Pattern '(.*?)-[0-9]+.*' ).matches.groups[-1].value)
+             if( $tag -match '-(open|beta|alpha|rc|preview|final)[0-9]*$' ) {
+                echo "CHOCO_PRE=--pre"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+             }              
+             echo $itemname
+             echo "CHOCO_ITEMNAME=$itemname"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append          
+            } else {
+             echo "CHOCO_ITEMNAME=$((  ${{ env.SOURCE_TAG }} | Select-String -Pattern '(.*?)-[0-9]+.*' ).matches.groups[-1].value)"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+             if( '${{ env.SOURCE_TAG }}' -match '-(open|beta|alpha|rc|preview|final)[0-9]*$' ) {
+                echo "CHOCO_PRE=--pre"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+             } 
+            }
+
+      - name: Get Path of item
+        id: itempath
+        env:
+          CHOCO_PACKAGES: ${{  env.CHOCO_PACKAGES }}
+          CHOCO_ITEMNAME: ${{  env.CHOCO_ITEMNAME }}
+        run: |
+           $choco_packages='${{env.CHOCO_PACKAGES}}'.split(';')
+           echo $choco_packages
+           echo "CHOCO_ITEMPATH=$( ($choco_packages).where({$_ -match  '${{ env.CHOCO_ITEMNAME }}'  }) )"   | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append     
+
+      - name: Choco Pack
+        id: chocopack        
+        env:
+          CHOCO_ITEMPATH: ${{ env.CHOCO_ITEMPATH }}        
+        run: |
+           choco pack ${{ env.CHOCO_ITEMPATH }}
+ 
+      - name: Choco Install
+        id: chocoinstall
+        env:
+          CHOCO_ITEMNAME: ${{  env.CHOCO_ITEMNAME }}        
+          CHOCO_PRE: ${{  env.CHOCO_PRE }}      
+        run: |
+           choco install -s . ${{ env.CHOCO_ITEMNAME }} ${{ env.CHOCO_PRE }}
+           
+      - name: Choco uninstall
+        id: chocouninstall
+        env:
+          CHOCO_ITEMNAME: ${{  env.CHOCO_ITEMNAME }}          
+        run: |
+           choco uninstall  ${{ env.CHOCO_ITEMNAME }}
+  push:
+    needs: test
+    runs-on: windows-2022
+    if: github.event_name == 'release'
     environment: production
     steps:
       - name: Checkout
@@ -77,22 +167,8 @@ jobs:
           CHOCO_ITEMPATH: ${{ env.CHOCO_ITEMPATH }}        
         run: |
            choco pack ${{ env.CHOCO_ITEMPATH }}
- 
-      - name: Choco Install
-        id: chocoinstall
-        env:
-          CHOCO_ITEMNAME: ${{  env.CHOCO_ITEMNAME }}        
-          CHOCO_PRE: ${{  env.CHOCO_PRE }}      
-        run: |
-           choco install -s . ${{ env.CHOCO_ITEMNAME }} ${{ env.CHOCO_PRE }}
-           
-      - name: Choco uninstall
-        id: chocouninstall
-        env:
-          CHOCO_ITEMNAME: ${{  env.CHOCO_ITEMNAME }}          
-        run: |
-           choco uninstall  ${{ env.CHOCO_ITEMNAME }}
-          
+
+                 
      # - name: Push
      #   uses: crazy-max/ghaction-chocolatey@v1
      #   with:
