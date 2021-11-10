@@ -50,7 +50,7 @@ jobs:
         env:
           CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}     
         run: |
-        '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | foreach-object { choco install -s . $_.id $(if($_.pre){" --pre"}) }
+           '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | foreach-object { choco install -s . $_.id $(if($_.pre){" --pre"}) }
            
            
       - name: Choco uninstall
@@ -58,7 +58,7 @@ jobs:
         env:
           CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}         
         run: |
-        '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | foreach-object { choco uninstall $_.id }
+           '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | foreach-object { choco uninstall $_.id }
   push:
     needs: test
     runs-on: windows-2022
@@ -97,5 +97,5 @@ jobs:
         env:
           CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}        
         run: |
-        '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | Where-Object {$_.repo -eq $false}  | foreach-object { choco pack $_.path; choco push --source CHOCO_SRC_URL; remove-item *.nupkg }
+           '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | Where-Object {$_.repo -eq $false}  | foreach-object { choco pack $_.path; choco push --source CHOCO_SRC_URL; remove-item *.nupkg }
  
