@@ -16,16 +16,7 @@ jobs:
     environment: production
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-        
-      - name: Branch name
-        id: branch_name
-        shell: bash
-        run: |
-          Write-Output ${GITHUB_REF}
-          Write-Output ::set-output name=SOURCE_NAME::${GITHUB_REF#refs/*/}
-          Write-Output ::set-output name=SOURCE_BRANCH::${GITHUB_REF#refs/heads/}
-          Write-Output ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}    
+        uses: actions/checkout@v2  
         
       - name: Install Choco
         run: |
@@ -34,71 +25,40 @@ jobs:
              Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
            }
         
-
-        - name: GetPackages
+      - name: GetPackages
         id: packages
         run: |
             $packages = Get-ChildItem -path . -recurse -Filter '*.nuspec' |Select-Object -ExpandProperty fullname
             $data = $packages | foreach-object {
                 $path=$_
                 [xml]$c=get-content $_ 
-                $c.package.metadata |Select-Object -property id,version, @{n="repo";e={ $((choco search $($_.id) --version=$($_.version) --exact --detailed --pre --allowunofficial --limitoutput) | Measure-Object -line | Select-Object -expandproperty Lines  ) -eq 1  }}, @{n="path";e={$path}} 
+                $c.package.metadata |Select-Object -property id,version,@{n="pre";e={ $($_.version -match '-(open|beta|alpha|rc|preview|final)[0-9]*$' ) }}, @{n="repo";e={ $((choco search $($_.id) --version=$($_.version) --exact --detailed --pre --allowunofficial --limitoutput) | Measure-Object -line | Select-Object -expandproperty Lines  ) -eq 1  }}, @{n="path";e={$path}} 
             }
             $chocopackages=$data |ConvertTo-Json -Compress
             Write-Output "CHOCO_PACKAGES=$($chocopackages)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Get Tag Base Name
-        id: tagname
-        env:
-          SOURCE_TAG: ${{  steps.branch_name.outputs.SOURCE_TAG }}
-        run: |
-           Write-Output ${{ env.SOURCE_TAG }}
-           if( '${{ env.SOURCE_TAG  }}' -eq 'refs/heads/master' ){
-             $tag = 'mqtt-explorer-0.4.0-beta1'
-             $itemname = $(( $tag | select-String -Pattern '(.*?)-[0-9]+.*' ).matches.groups[-1].value)
-             if( $tag -match '-(open|beta|alpha|rc|preview|final)[0-9]*$' ) {
-                Write-Output "CHOCO_PRE=--pre"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-             }              
-             Write-Output $itemname
-             Write-Output "CHOCO_ITEMNAME=$itemname"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append          
-            } else {
-             Write-Output "CHOCO_ITEMNAME=$((  ${{ env.SOURCE_TAG }} | Select-String -Pattern '(.*?)-[0-9]+.*' ).matches.groups[-1].value)"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-             if( '${{ env.SOURCE_TAG }}' -match '-(open|beta|alpha|rc|preview|final)[0-9]*$' ) {
-                Write-Output "CHOCO_PRE=--pre"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-             } 
-            }
-
-      - name: Get Path of item
-        id: itempath
-        env:
-          CHOCO_PACKAGES: ${{  env.CHOCO_PACKAGES }}
-          CHOCO_ITEMNAME: ${{  env.CHOCO_ITEMNAME }}
-        run: |
-           $choco_packages='${{env.CHOCO_PACKAGES}}' | convertfrom-json 
-           write-output $choco_packages
-           write-output "CHOCO_ITEMPATH=$( ($choco_packages).where({$_ -match  '${{ env.CHOCO_ITEMNAME }}'  }) )"   | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append     
-
       - name: Choco Pack
         id: chocopack        
         env:
-          CHOCO_ITEMPATH: ${{ env.CHOCO_ITEMPATH }}        
+          CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}        
         run: |
-           choco pack ${{ env.CHOCO_ITEMPATH }}
+           '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | foreach-object { choco pack $_.path }
+           
  
       - name: Choco Install
         id: chocoinstall
         env:
-          CHOCO_ITEMNAME: ${{  env.CHOCO_ITEMNAME }}        
-          CHOCO_PRE: ${{  env.CHOCO_PRE }}      
+          CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}     
         run: |
-           choco install -s . ${{ env.CHOCO_ITEMNAME }} ${{ env.CHOCO_PRE }}
+        '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | foreach-object { choco install -s . $_.id $(if($_.pre){" --pre"}) }
+           
            
       - name: Choco uninstall
         id: chocouninstall
         env:
-          CHOCO_ITEMNAME: ${{  env.CHOCO_ITEMNAME }}          
+          CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}         
         run: |
-           choco uninstall  ${{ env.CHOCO_ITEMNAME }}
+        '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | foreach-object { choco uninstall $_.id }
   push:
     needs: test
     runs-on: windows-2022
@@ -107,15 +67,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        
-      - name: Branch name
-        id: branch_name
-        shell: bash
-        run: |
-          write-output ${GITHUB_REF}
-          write-output ::set-output name=SOURCE_NAME::${GITHUB_REF#refs/*/}
-          write-output ::set-output name=SOURCE_BRANCH::${GITHUB_REF#refs/heads/}
-          write-output ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}    
         
       - name: Install Choco
         run: |
@@ -131,62 +82,20 @@ jobs:
       - name: GetPackages
         id: packages
         run: |
-           $packages = Get-ChildItem -path . -recurse -Filter '*.nuspec' |Select-Object -ExpandProperty fullname
-           $data = $packages | foreach-object {
-             $path=$_
-             [xml]$c=get-content $_ 
-             $c.package.metadata |Select-Object -property id,version, @{n="repo";e={ $((choco search $($_.id) --version=$($_.version) --exact --detailed --pre --allowunofficial --limitoutput) | Measure-Object -line | Select-Object -expandproperty Lines  ) -eq 1  }}, @{n="path";e={$path}} 
+            $packages = Get-ChildItem -path . -recurse -Filter '*.nuspec' |Select-Object -ExpandProperty fullname
+            $data = $packages | foreach-object {
+                $path=$_
+                [xml]$c=get-content $_ 
+                $c.package.metadata |Select-Object -property id,version,@{n="pre";e={ $($_.version -match '-(open|beta|alpha|rc|preview|final)[0-9]*$' ) }}, @{n="repo";e={ $((choco search $($_.id) --version=$($_.version) --exact --detailed --pre --allowunofficial --limitoutput) | Measure-Object -line | Select-Object -expandproperty Lines  ) -eq 1  }}, @{n="path";e={$path}} 
             }
             $chocopackages=$data |ConvertTo-Json -Compress
-            #id            version     repo path
-            #--            -------     ---- ----
-            # mqtt-explorer 0.4.0-beta1 True C:\Users\..
-           write-output "CHOCO_PACKAGES=$($chocopackages)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+            Write-Output "CHOCO_PACKAGES=$($chocopackages)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
-      - name: Get Tag Base Name
-        id: tagname
-        env:
-          SOURCE_TAG: ${{  steps.branch_name.outputs.SOURCE_TAG }}
-        run: |
-           write-output ${{ env.SOURCE_TAG }}
-           if( '${{ env.SOURCE_TAG  }}' -eq 'refs/heads/master' ){
-             $tag = 'mqtt-explorer-0.4.0-beta1'
-             $itemname = $(( $tag | select-String -Pattern '(.*?)-[0-9]+.*' ).matches.groups[-1].value)
-             if( $tag -match '-(open|beta|alpha|rc|preview|final)[0-9]*$' ) {
-                write-output "CHOCO_PRE=--pre"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-             }              
-             write-output $itemname
-             write-output "CHOCO_ITEMNAME=$itemname"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append          
-            } else {
-             $itemname = $(( '${{ env.SOURCE_TAG }}' | Select-String -Pattern '(.*?)-[0-9]+.*' ).matches.groups[-1].value)
-             $itemver =  "${{ env.SOURCE_TAG }}".substring($itemname.length+1)
-             write-output "CHOCO_ITEMNAME=$itemname"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-             write-output "CHOCO_ITEMVER= $itemname"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-             if( '${{ env.SOURCE_TAG }}' -match '-(open|beta|alpha|rc|preview|final)[0-9]*$' ) {
-                write-output "CHOCO_PRE=--pre"  | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-             } 
-            }
       
-      - name: Get Path of item
-        id: itempath
+      - name: Choco Pack & Push
+        id: chocopackpush        
         env:
-          CHOCO_PACKAGES: ${{  env.CHOCO_PACKAGES }}
-          CHOCO_ITEMNAME: ${{  env.CHOCO_ITEMNAME }}
+          CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}        
         run: |
-           $choco_packages='${{env.CHOCO_PACKAGES}}'.split(';')
-           write-output $choco_packages
-           write-output "CHOCO_ITEMPATH=$( ($choco_packages).where({$_ -match  '${{ env.CHOCO_ITEMNAME }}'  }) )"   | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append     
-
-      - name: Choco Pack
-        id: chocopack        
-        env:
-          CHOCO_ITEMPATH: ${{ env.CHOCO_ITEMPATH }}        
-        run: |
-           choco pack ${{ env.CHOCO_ITEMPATH }}
-
-                 
-     # - name: Push
-     #   uses: crazy-max/ghaction-chocolatey@v1
-     #   with:
-     #     args: push ${{  steps.item_tag.outputs.result  }}.nupkg --source CHOCO_SRC_URL
+        '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | Where-Object {$_.repo -eq $false}  | foreach-object { choco pack $_.path; choco push --source CHOCO_SRC_URL; remove-item *.nupkg }
  
