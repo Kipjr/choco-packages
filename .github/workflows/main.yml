@@ -49,7 +49,14 @@ jobs:
         env:
           CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}     
         run: |
-           '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | foreach-object { choco install -s . $_.id $(if($_.pre){" --pre"}) }
+           $installString="choco install -s . "
+           $('${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json) | foreach-object {
+            $installString="choco install -y -s . "
+             $installString+=$_.id
+             if($_.pre -eq $true){$installString += " --pre"}
+             $installstring | Write-Output
+             invoke-expression $installString
+            }
            
            
       - name: Choco uninstall
