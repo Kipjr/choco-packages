@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <!-- == PACKAGE SPECIFIC SECTION == -->
+    <id>advanced-port-scanner</id>
+    <version>2.5.3869</version>
+    <packageSourceUrl>https://github.com/Kipjr/chocolatey-packages/tree/master/advanced-port-scanner</packageSourceUrl>
+    <owners>Kipjr</owners>
+    <!-- == SOFTWARE SPECIFIC SECTION == -->
+    <title>advanced-port-scanner (Install)</title>
+    <authors>Famatech Corp</authors>
+    <projectUrl>https://www.advanced-port-scanner.com/</projectUrl>
+    <iconUrl>https://www.advanced-port-scanner.com/favicon.svg</iconUrl>
+    <copyright>1999-2021 Famatech Corp. </copyright>
+    <docsUrl>https://www.advanced-port-scanner.com/help/</docsUrl>
+    <tags>advanced port scanner</tags>
+    <summary>Advanced Port Scanner is a free network scanner allowing you to quickly find open ports on network computers and retrieve versions of programs running on the detected ports. The program has a user-friendly interface and rich functionality.</summary>
+    <description>
+# Features
+- Fast scanning of network devices
+- Identification of programs running on detected ports
+- Easy access to resources found: HTTP, HTTPS, FTP and shared folders
+- Remote access to computers via RDP and Radmin</description>
+  </metadata>
+  <files>
+    <file src="tools/chocolateyinstall.ps1" target="tools"/>
+    <file src="tools/chocolateyuninstall.ps1" target="tools"/>
+  </files>
+</package>
