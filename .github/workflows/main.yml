@@ -103,5 +103,6 @@ jobs:
         env:
           CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}        
         run: |
-           '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | Where-Object {$_.repo -eq $false}  | foreach-object { choco pack $_.path; choco push --source CHOCO_SRC_URL; remove-item *.nupkg }
+           $chocopackages = '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json 
+           $chocopackages | Where-Object {$_.repo -eq $false}  | foreach-object { choco pack $_.path; choco push --source CHOCO_SRC_URL; remove-item *.nupkg }
  
