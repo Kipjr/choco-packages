@@ -83,7 +83,7 @@ jobs:
         
       - name: SetAPIKey
         run: | 
-          choco apikey --key CHOCO_API_KEY --source CHOCO_SRC_URL        
+          choco apikey --key ${{secret.CHOCO_API_KEY}} --source ${{secret.CHOCO_SRC_URL}}
       
       - name: GetPackages
         id: packages
