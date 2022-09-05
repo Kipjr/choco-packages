@@ -10,7 +10,7 @@ $packageArgs = @{
   softwareName  = 'advanced-port-scanner*'
   checksum      = 'D0C1662CE239E4D288048C0E3324EC52962F6DDDA77DA0CB7AF9C1D9C2F1E2EB'
   checksumType  = 'sha256'
-  silentArgs   = '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-'
+  silentArgs   = '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /INSTALLDESKTOPSHORTCUT=NO'
   validExitCodes= @(0)
 }
 Install-ChocolateyPackage @packageArgs
