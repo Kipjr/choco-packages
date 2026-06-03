@@ -95,8 +95,10 @@ jobs:
       - name: GetPackages
         id: packages
         run: |
+            Write-Host "${GITHUB_REF_NAME}"
             $packages = Get-ChildItem -path . -recurse -Filter '*.nuspec' |Select-Object -ExpandProperty fullname
-            $data = $packages | foreach-object {
+            $filteredPackages = $packages | where { $_ -match ${GITHUB_REF_NAME} }
+            $data = $filteredPackages | foreach-object {
                 $path=$_
                 [xml]$c=get-content $_ 
                 $c.package.metadata |Select-Object -property id,version,@{n="pre";e={ $($_.version -match '-(open|beta|alpha|rc|preview|final)[0-9]*$' ) }}, @{n="repo";e={ $((choco search $($_.id) --version=$($_.version) --exact --detailed --pre --allowunofficial --limitoutput) | Measure-Object -line | Select-Object -expandproperty Lines  ) -eq 1  }}, @{n="path";e={$path}} 
