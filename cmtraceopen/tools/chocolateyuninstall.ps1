@@ -3,7 +3,7 @@ $packageArgs = @{
   packageName   = $env:ChocolateyPackageName
   softwareName  = 'CMTrace Open'
   fileType      = 'msi'
-  silentArgs   = '/S'
+  silentArgs   = '/quiet'
   validExitCodes= @(0) 
 }
 
