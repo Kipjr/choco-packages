@@ -104,6 +104,7 @@ jobs:
                 $c.package.metadata |Select-Object -property id,version,@{n="pre";e={ $($_.version -match '-(open|beta|alpha|rc|preview|final)[0-9]*$' ) }}, @{n="repo";e={ $((choco search $($_.id) --version=$($_.version) --exact --detailed --pre --allowunofficial --limitoutput) | Measure-Object -line | Select-Object -expandproperty Lines  ) -eq 1  }}, @{n="path";e={$path}} 
             }
             $chocopackages=$data |ConvertTo-Json -Compress
+            $chocopackages | Write-Host
             Write-Output "CHOCO_PACKAGES=$($chocopackages)" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
       
@@ -112,6 +113,11 @@ jobs:
         env:
           CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}        
         run: |
-           $chocopackages = '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json 
-           $chocopackages | Where-Object {$_.repo -eq $false}  | foreach-object { choco pack $_.path; choco push; remove-item *.nupkg }
+           $chocoPackages = '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json
+           $chocoPackages | Write-Host
+           $chocoPackages | where { $_.path -match ${GITHUB_REF_NAME} -and $_.repo -eq $false}  | foreach-object {
+             choco pack $_.path
+             choco push --source ${{secrets.CHOCO_SRC_URL}}
+             remove-item *.nupkg
+           }
  
