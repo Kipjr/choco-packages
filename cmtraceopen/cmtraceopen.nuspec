@@ -55,7 +55,6 @@ Analyze Intune Management Extension logs without reading raw text line by line.
 	<releaseNotes>https://github.com/adamgell/cmtraceopen/releases</releaseNotes>
   </metadata>
   <files>
-    <file src="tools/chocolateyinstall.ps1" target="tools"/>
-    <file src="tools/chocolateyuninstall.ps1" target="tools"/>
+    <file src="tools\**" target="tools" />
   </files>
 </package>
