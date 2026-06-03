@@ -12,7 +12,7 @@ $packageArgs = @{
   checksum      = '42E993B33E54B34DAF2FAB0C839902278B4C32B29C44FD92204BD85F6FD53754'
   checksumType  = 'sha256'
   validExitCodes= @(0)
-  silentArgs   = '/quiet'
+  silentArgs   = '/qn'
 }
 
 Install-ChocolateyPackage @packageArgs
