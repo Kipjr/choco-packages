@@ -54,7 +54,7 @@ jobs:
             $installString="choco install -y -s . "
              $installString+=$_.id
              if($_.pre -eq $true){$installString += " --pre"}
-             $installstring | Write-Output
+             "Installstring: $installstring" | Write-Output
              invoke-expression $installString
             }
            
@@ -64,7 +64,7 @@ jobs:
         env:
           CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}         
         run: |
-           '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | foreach-object { choco uninstall $_.id }
+           '${{ env.CHOCO_PACKAGES }}' | ConvertFrom-Json | foreach-object { choco uninstall $_.id }
   push:
     needs: test
     runs-on: windows-2022
