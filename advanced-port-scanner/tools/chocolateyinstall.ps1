@@ -21,7 +21,7 @@ DO
 {
 	start-Sleep -Milliseconds 100 #wait 100ms / loop
 	$t++ #increase iteration 
-} Until (($p=Get-Process -Name advanced_port_scanner -ErrorAction SilentlyContinue)-ne $null -or ($t -gt 100)) #wait until process is found or timeout reached
+} Until ($null -ne ($p=Get-Process -Name advanced_port_scanner -ErrorAction SilentlyContinue) -or ($t -gt 100)) #wait until process is found or timeout reached
 if($p) { #if process is found
 	$p |Stop-Process  -Force #kill process 
 	"Killing APS process"|write-output
