@@ -56,6 +56,7 @@ jobs:
              if($_.pre -eq $true){$installString += " --pre"}
              "Installstring: $installstring" | Write-Output
              invoke-expression $installString
+             Get-Content -Tail 15 -Path "C:\ProgramData\chocolatey\logs\chocolatey.log" | Write-Output
             }
            
            
@@ -64,7 +65,10 @@ jobs:
         env:
           CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}         
         run: |
-           '${{ env.CHOCO_PACKAGES }}' | ConvertFrom-Json | foreach-object { choco uninstall $_.id }
+           '${{ env.CHOCO_PACKAGES }}' | ConvertFrom-Json | foreach-object { 
+               choco uninstall $_.id
+               Get-Content -Tail 15 -Path "C:\ProgramData\chocolatey\logs\chocolatey.log" | Write-Output
+            }
   push:
     needs: test
     runs-on: windows-2022
