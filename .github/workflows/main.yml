@@ -41,7 +41,10 @@ jobs:
         env:
           CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}        
         run: |
-           '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | foreach-object { choco pack $_.path }
+           '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | foreach-object { 
+               "Packing $($_.path)" | Write-Output
+               choco pack $_.path
+            }
            
  
       - name: Choco Install
@@ -54,8 +57,9 @@ jobs:
             $installString="choco install -y -s . "
              $installString+=$_.id
              if($_.pre -eq $true){$installString += " --pre"}
-             $installstring | Write-Output
+             "Installstring: $installstring" | Write-Output
              invoke-expression $installString
+             Get-Content -Tail 15 -Path "C:\ProgramData\chocolatey\logs\choco.summary.log" | Write-Output
             }
            
            
@@ -64,7 +68,10 @@ jobs:
         env:
           CHOCO_PACKAGES: ${{ env.CHOCO_PACKAGES }}         
         run: |
-           '${{ env.CHOCO_PACKAGES }}' |ConvertFrom-Json | foreach-object { choco uninstall $_.id }
+           '${{ env.CHOCO_PACKAGES }}' | ConvertFrom-Json | foreach-object { 
+               choco uninstall $_.id
+               Get-Content -Tail 50 -Path "C:\ProgramData\chocolatey\logs\choco.summary.log" | Write-Output
+            }
   push:
     needs: test
     runs-on: windows-2022
