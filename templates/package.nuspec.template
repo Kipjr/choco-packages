@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>{{ID}}</id>
+    <version>{{VERSION}}</version>
+    <title>{{NAME}}</title>
+    <authors>Kipjr</authors>
+    <description>{{NAME}}</description>
+  </metadata>
+</package>

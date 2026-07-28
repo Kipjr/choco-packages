@@ -1,0 +1,85 @@
+name: Generate Chocolatey Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "Package name"
+        required: true
+        type: string
+
+      url:
+        description: "Download URL"
+        required: true
+        type: string
+
+      version:
+        description: "Package version"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Create package branch
+        shell: pwsh
+        run: |
+          $branch = "package/${{ inputs.name }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b $branch
+
+          echo "PACKAGE_BRANCH=$branch" >> $env:GITHUB_ENV
+
+      - name: Generate Chocolatey package
+        shell: pwsh
+        run: |
+          ./.scripts/New-ChocoPackage.ps1 `
+            -Name "${{ inputs.name }}" `
+            -Url "${{ inputs.url }}" `
+            -Version "${{ inputs.version }}"
+
+      - name: Commit package
+        shell: pwsh
+        run: |
+          git add .
+
+          git commit `
+            -m "Add Chocolatey package ${{ inputs.name }} ${{ inputs.version }}"
+
+      - name: Push branch
+        shell: pwsh
+        run: |
+          git push origin $env:PACKAGE_BRANCH
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ${{ env.PACKAGE_BRANCH }}
+          base: dev
+          title: "Add Chocolatey package ${{ inputs.name }} ${{ inputs.version }}"
+          body: |
+            Generated Chocolatey package.
+
+            Package:
+            - Name: ${{ inputs.name }}
+            - Version: ${{ inputs.version }}
+            - URL: ${{ inputs.url }}
+
+            Generated files:
+            - .nuspec
+            - tools/chocolateyInstall.ps1
