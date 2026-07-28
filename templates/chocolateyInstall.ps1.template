@@ -1,0 +1,9 @@
+$url = "{{URL}}"
+$checksum = "{{SHA256}}"
+
+Install-ChocolateyPackage `
+    -PackageName "{{ID}}" `
+    -InstallerType "exe" `
+    -Url $url `
+    -Checksum $checksum `
+    -ChecksumType "sha256"
