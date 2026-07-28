@@ -4,7 +4,7 @@
   <metadata>
     <!-- == PACKAGE SPECIFIC SECTION == -->
     <id>cmtraceopen</id>
-    <version>1.50/version>
+    <version>1.5.0</version>
     <packageSourceUrl>https://github.com/adamgell/cmtraceopen</packageSourceUrl>
     <owners>Kipjr</owners>
     <!-- == SOFTWARE SPECIFIC SECTION == -->
