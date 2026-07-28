@@ -4,7 +4,7 @@
   <metadata>
     <!-- == PACKAGE SPECIFIC SECTION == -->
     <id>cmtraceopen</id>
-    <version>1.3.2</version>
+    <version>1.5.0</version>
     <packageSourceUrl>https://github.com/adamgell/cmtraceopen</packageSourceUrl>
     <owners>Kipjr</owners>
     <!-- == SOFTWARE SPECIFIC SECTION == -->
@@ -15,7 +15,7 @@
     <licenseUrl>https://github.com/adamgell/cmtraceopen/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/adamgell/cmtraceopen</projectSourceUrl>
-    <tags>cmtraceopen 1.3.2</tags>
+    <tags>cmtraceopen 1.5.0</tags>
     <summary>An open-source log viewer inspired by Microsoft's CMTrace.exe.</summary>
     <description>
 A free, open-source log viewer and Windows troubleshooting tool. Drop in a log file and start reading — no install wizards, no prerequisites, no license keys.
