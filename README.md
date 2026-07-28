@@ -12,5 +12,5 @@ Files for each package are located in their own directories.
 | Packages   | Latest version   |
 |--|--|
 |advanced-port-scanner| 2.5.3869 |
-|cmtraceopen| 1.3.2 |
+|cmtraceopen| 1.5.0 |
 |mqtt-explorer| 0.4.0-beta1 |
