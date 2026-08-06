@@ -36,7 +36,7 @@ jobs:
       - name: Create package branch
         shell: pwsh
         run: |
-          $branch = "package/${{ inputs.name }}"
+          $branch = "packages/${{ inputs.name }}-{{ inputs.version }}"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -65,21 +65,3 @@ jobs:
         shell: pwsh
         run: |
           git push origin $env:PACKAGE_BRANCH
-
-      - name: Create pull request
-        uses: peter-evans/create-pull-request@v7
-        with:
-          branch: ${{ env.PACKAGE_BRANCH }}
-          base: dev
-          title: "Add Chocolatey package ${{ inputs.name }} ${{ inputs.version }}"
-          body: |
-            Generated Chocolatey package.
-
-            Package:
-            - Name: ${{ inputs.name }}
-            - Version: ${{ inputs.version }}
-            - URL: ${{ inputs.url }}
-
-            Generated files:
-            - .nuspec
-            - tools/chocolateyInstall.ps1
