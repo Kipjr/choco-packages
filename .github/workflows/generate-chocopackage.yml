@@ -65,21 +65,3 @@ jobs:
         shell: pwsh
         run: |
           git push origin $env:PACKAGE_BRANCH
-
-      - name: Create pull request
-        uses: peter-evans/create-pull-request@v7
-        with:
-          branch: ${{ env.PACKAGE_BRANCH }}
-          base: dev
-          title: "Add Chocolatey package ${{ inputs.name }} ${{ inputs.version }}"
-          body: |
-            Generated Chocolatey package.
-
-            Package:
-            - Name: ${{ inputs.name }}
-            - Version: ${{ inputs.version }}
-            - URL: ${{ inputs.url }}
-
-            Generated files:
-            - .nuspec
-            - tools/chocolateyInstall.ps1
