@@ -59,13 +59,14 @@ try {
             -Path $toolsPath `
             -ItemType Directory | Out-Null
     }
-
+    $filetype = [System.IO.Path]::GetExtension(([uri]$Url).AbsolutePath).TrimStart('.')
     $variables = @{
         ID      = $id
         NAME    = $Name
         URL     = $Url
         VERSION = $Version
         SHA256  = $sha256
+        FILETYPE=$filetype
     }
 
     function Fill-Template {
