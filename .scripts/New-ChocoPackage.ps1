@@ -1,3 +1,16 @@
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)]
+    [string]$Name,
+
+    [Parameter(Mandatory)]
+    [string]$Url,
+
+    [Parameter(Mandatory)]
+    [string]$Version,
+
+    [string]$Root = "."
+)
 
 # choco new <name> [<options/switches>] [<property=value> <propertyN=valueN>]
 <#
@@ -12,7 +25,6 @@ silentargs
 
 
 $templatePath = Join-Path $Root "templates"
-
 $nuspecTemplate = Join-Path $templatePath "package.nuspec.template"
 $installTemplate = Join-Path $templatePath "chocolateyInstall.ps1.template"
 
